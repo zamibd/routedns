@@ -10,18 +10,18 @@ require (
 	github.com/cloudflare/odoh-go v1.0.1-0.20230926114050-f39fa019b017
 	github.com/heimdalr/dag v1.5.0
 	github.com/jtacoma/uritemplates v1.0.0
-	github.com/miekg/dns v1.1.69
+	github.com/miekg/dns v1.1.72
 	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/pion/dtls/v3 v3.1.2
 	github.com/pires/go-proxyproto v0.11.0
 	github.com/pkg/errors v0.9.1
-	github.com/quic-go/quic-go v0.57.1
-	github.com/redis/go-redis/v9 v9.17.2
+	github.com/quic-go/quic-go v0.59.0
+	github.com/redis/go-redis/v9 v9.18.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/txthinking/socks5 v0.0.0-20251011041537-5c31f201a10e
 	github.com/yuin/gopher-lua v1.1.2-0.20241109074121-ccacf662c9d2
-	golang.org/x/net v0.48.0
+	golang.org/x/net v0.50.0
 )
 
 require (
@@ -42,11 +42,12 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae // indirect
-	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/mod v0.31.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
-	golang.org/x/tools v0.40.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/tools v0.42.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
