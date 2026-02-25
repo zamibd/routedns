@@ -2,14 +2,19 @@ package rdns
 
 import (
 	"crypto/tls"
+	"net"
 
 	"github.com/miekg/dns"
+	proxyproto "github.com/pires/go-proxyproto"
 )
 
 // DoTListener is a DNS listener/server for DNS-over-TLS.
 type DoTListener struct {
 	*dns.Server
-	id string
+	id      string
+	opt     DoTListenerOptions
+	addr    string
+	network string
 }
 
 var _ Listener = &DoTListener{}
@@ -25,29 +30,48 @@ type DoTListenerOptions struct {
 func NewDoTListener(id, addr, network string, opt DoTListenerOptions, resolver Resolver) *DoTListener {
 	switch network {
 	case "", "tcp":
-		network = "tcp-tls"
+		network = "tcp"
 	case "tcp4":
-		network = "tcp4-tls"
+		network = "tcp4"
 	case "tcp6":
-		network = "tcp6-tls"
+		network = "tcp6"
 	}
 	return &DoTListener{
-		id: id,
+		id:      id,
+		opt:     opt,
+		addr:    addr,
+		network: network,
 		Server: &dns.Server{
 			Addr:      addr,
-			Net:       network,
+			Net:       network + "-tls",
 			TLSConfig: opt.TLSConfig,
 			Handler:   listenHandler(id, "dot", addr, resolver, opt.AllowedNet),
 		},
 	}
 }
 
-// Start the Dot server.
+// Start the DoT server.
 func (s DoTListener) Start() error {
 	Log.Info("starting listener",
 		"id", s.id,
 		"protocol", "dot",
-		"addr", s.Addr)
+		"addr", s.addr)
+
+	// When PROXY protocol is enabled, manually create a TLS listener and wrap it
+	if s.opt.ProxyProtocol {
+		ln, err := net.Listen(s.network, s.addr)
+		if err != nil {
+			return err
+		}
+		// Wrap with PROXY protocol
+		proxyLn := &proxyproto.Listener{Listener: ln}
+		// Wrap with TLS
+		tlsLn := tls.NewListener(proxyLn, s.opt.TLSConfig)
+		s.Server.Listener = tlsLn
+		Log.Info("PROXY protocol enabled", "id", s.id, "addr", s.addr)
+		return s.Server.ActivateAndServe()
+	}
+
 	return s.ListenAndServe()
 }
 
@@ -56,7 +80,7 @@ func (s DoTListener) Stop() error {
 	Log.Info("stopping listener",
 		"id", s.id,
 		"protocol", "dot",
-		"addr", s.Addr)
+		"addr", s.addr)
 	return s.Shutdown()
 }
 

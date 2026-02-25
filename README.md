@@ -1,6 +1,6 @@
 # RouteDNS - DNS stub resolver, proxy and router
 
-[![GoDoc](https://godoc.org/github.com/folbricht/routedns?status.svg)](https://godoc.org/github.com/folbricht/routedns) ![build](https://github.com/folbricht/routedns/workflows/build/badge.svg) ![license](https://img.shields.io/badge/License-BSD-green.svg)
+[![GoDoc](https://godoc.org/github.com/zamibd/routedns?status.svg)](https://godoc.org/github.com/zamibd/routedns) ![build](https://github.com/zamibd/routedns/workflows/build/badge.svg) ![license](https://img.shields.io/badge/License-BSD-green.svg)
 
 RouteDNS acts as a stub resolver and proxy that offers flexible configuration options with a focus on providing privacy as well as resiliency. It supports several DNS protocols such as plain UDP and TCP, DNS-over-TLS and DNS-over-HTTPS as input and output. In addition it's possible to build complex processing pipelines allowing routing of queries based on query name, type or source address as well as blocklists, caches and name translation. Upstream resolvers can be grouped in various ways to provide failover, load-balancing, or performance.
 
@@ -32,13 +32,13 @@ Features:
 Install [Go](https://golang.org/dl) version 1.19+ then run the following to build the binary. It'll be placed in $HOME/go/bin by default:
 
 ```text
-go install github.com/folbricht/routedns/cmd/routedns@latest
+go install github.com/zamibd/routedns/cmd/routedns@latest
 ```
 
 Alternative method using a clone, building from the tip of the master branch.
 
 ```text
-git clone https://github.com/folbricht/routedns.git
+git clone https://github.com/zamibd/routedns.git
 cd routedns/cmd/routedns && go install
 ```
 
@@ -54,24 +54,24 @@ Example configuration files for a number of use-cases can be found [here](cmd/ro
 
 ### Docker container
 
-A container is available on [Docker Hub](https://hub.docker.com/r/folbricht/routedns). It comes with a very basic configuration which is expected to be overwritten with a custom config file.
+A container is available on [Docker Hub](https://hub.docker.com/r/zamibd/routedns). It comes with a very basic configuration which is expected to be overwritten with a custom config file.
 
 Use the default config (simple DNS -> DoT proxy):
 
 ```text
-docker run -d --rm --network host folbricht/routedns
+docker run -d --rm --network host zamibd/routedns
 ```
 
 Override the default configuration (`/config.toml`) with a config file on the host:
 
 ```text
-docker run -d --rm --network host -v /path/to/config.toml:/config.toml folbricht/routedns
+docker run -d --rm --network host -v /path/to/config.toml:/config.toml zamibd/routedns
 ```
 
 Listen on non-standard ports:
 
 ```text
-docker run -d --rm -p 5353:53/udp -p 5353:53/tcp -v /path/to/config.toml:/config.toml folbricht/routedns
+docker run -d --rm -p 5353:53/udp -p 5353:53/tcp -v /path/to/config.toml:/config.toml zamibd/routedns
 ```
 
 ### Pre-Compiled/Built Binaries

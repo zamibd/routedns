@@ -15,7 +15,7 @@ import (
 	"time"
 
 	syslog "github.com/RackSec/srslog"
-	rdns "github.com/folbricht/routedns"
+	rdns "github.com/zamibd/routedns"
 	"github.com/heimdalr/dag"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cobra"
@@ -218,7 +218,7 @@ func start(opt options, args []string) error {
 			return errors.New("ip-version must be 4 or 6")
 		}
 
-		opt := rdns.ListenOptions{AllowedNet: allowedNet}
+		opt := rdns.ListenOptions{AllowedNet: allowedNet, ProxyProtocol: l.ProxyProtocol}
 
 		switch l.Protocol {
 		case "tcp":

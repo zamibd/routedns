@@ -72,7 +72,7 @@ Multiple config files can be provided as arguments and are merged.
 
 ### Key Patterns
 
-- **Go package name**: `rdns` (import as `github.com/folbricht/routedns`)
+- **Go package name**: `rdns` (import as `github.com/zamibd/routedns`)
 - **Composition via Resolver interface**: Groups/modifiers wrap inner resolvers, creating decorator chains
 - **Options structs**: Constructors take `*XxxOptions` structs (e.g., `CacheOptions`, `DNSClientOptions`)
 - **Metrics**: Components export metrics via `expvar` using the pattern `routedns.<base>.<id>.<metric>`

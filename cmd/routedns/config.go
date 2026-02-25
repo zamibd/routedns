@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	rdns "github.com/folbricht/routedns"
+	rdns "github.com/zamibd/routedns"
 )
 
 type config struct {
@@ -21,21 +21,22 @@ type config struct {
 }
 
 type listener struct {
-	Address    string
-	Protocol   string
-	IPVersion  int `toml:"ip-version"` // 4 = IPv4, 6 = IPv6
-	Transport  string
-	Resolver   string
-	CA         string
-	ServerKey  string   `toml:"server-key"`
-	ServerCrt  string   `toml:"server-crt"`
-	MutualTLS  bool     `toml:"mutual-tls"`
-	NoTLS      bool     `toml:"no-tls"` // Disable TLS in DoH servers
-	AllowedNet []string `toml:"allowed-net"`
-	KeySeed    string   `toml:"key-seed"`  // ODoH HPKE key seed, 16 byte hex key. Generate for example with: "openssl rand -hex 16"
-	OdohMode   string   `toml:"odoh-mode"` // ODoH mode - accepts "proxy", "target" or "dual", default is target mode
-	AllowDoH   bool     `toml:"allow-doh"` // Allow ODoH listeners to also handle DoH queries to /dns-query
-	Frontend   dohFrontend
+	Address       string
+	Protocol      string
+	IPVersion     int `toml:"ip-version"` // 4 = IPv4, 6 = IPv6
+	Transport     string
+	Resolver      string
+	CA            string
+	ServerKey     string   `toml:"server-key"`
+	ServerCrt     string   `toml:"server-crt"`
+	MutualTLS     bool     `toml:"mutual-tls"`
+	NoTLS         bool     `toml:"no-tls"` // Disable TLS in DoH servers
+	AllowedNet    []string `toml:"allowed-net"`
+	ProxyProtocol bool     `toml:"proxy-protocol"` // Enable PROXY protocol (v1/v2) support
+	KeySeed       string   `toml:"key-seed"`       // ODoH HPKE key seed, 16 byte hex key. Generate for example with: "openssl rand -hex 16"
+	OdohMode      string   `toml:"odoh-mode"`      // ODoH mode - accepts "proxy", "target" or "dual", default is target mode
+	AllowDoH      bool     `toml:"allow-doh"`      // Allow ODoH listeners to also handle DoH queries to /dns-query
+	Frontend      dohFrontend
 }
 
 // DoH listener frontend options
@@ -92,8 +93,8 @@ type cacheBackend struct {
 	RedisKeyPrefix       string `toml:"redis-key-prefix"`        // Prefix any cache entry
 	RedisMaxRetries      int    `toml:"redis-max-retries"`       // Maximum number of retries before giving up. Default is 3 retries; -1 (not 0) disables retries.
 	RedisMinRetryBackoff int    `toml:"redis-min-retry-backoff"` // Minimum back-off between each retry. Default is 8 milliseconds; -1 disables back-off.
-	RedisMaxRetryBackoff int  `toml:"redis-max-retry-backoff"` // Maximum back-off between each retry. Default is 512 milliseconds; -1 disables back-off.
-	RedisSyncSet         bool `toml:"redis-sync-set"`          // When true, perform Redis SET synchronously. Default is false (async writes).
+	RedisMaxRetryBackoff int    `toml:"redis-max-retry-backoff"` // Maximum back-off between each retry. Default is 512 milliseconds; -1 disables back-off.
+	RedisSyncSet         bool   `toml:"redis-sync-set"`          // When true, perform Redis SET synchronously. Default is false (async writes).
 }
 
 type group struct {
@@ -192,10 +193,10 @@ type group struct {
 	OutputFormat string `toml:"output-format"` // "text" or "json"
 
 	// Prefetch options
-	PrefetchWindow    time.Duration `toml:"prefetch-window"`    // Time period to track queries for prefetching, default 1h
-	PrefetchThreshold uint64        `toml:"prefetch-threshold"` // Minimum number of queries per window to enable prefetching, default 5
-	PrefetchCacheSize int			`toml:"prefetch-cache-size"` // Maximum number of items to cache
-	PrefetchMaxItems  int           `toml:"prefetch-max-items"` // Maximum number of items to track prefetch, default (0) unlimited
+	PrefetchWindow    time.Duration `toml:"prefetch-window"`     // Time period to track queries for prefetching, default 1h
+	PrefetchThreshold uint64        `toml:"prefetch-threshold"`  // Minimum number of queries per window to enable prefetching, default 5
+	PrefetchCacheSize int           `toml:"prefetch-cache-size"` // Maximum number of items to cache
+	PrefetchMaxItems  int           `toml:"prefetch-max-items"`  // Maximum number of items to track prefetch, default (0) unlimited
 
 	// Lua scripting options
 	LuaScript       string `toml:"lua-script"`        // Inline Lua script

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
-	"github.com/pion/dtls/v2"
+	"github.com/pion/dtls/v3"
 )
 
 // DTLSClient is a DNS-over-DTLS resolver.
@@ -119,10 +119,14 @@ type dtlsDialer struct {
 }
 
 func (d dtlsDialer) Dial(address string) (*dns.Conn, error) {
-	pConn, err := net.DialUDP("udp", d.laddr, d.raddr)
+	pConn, err := net.ListenUDP("udp", d.laddr)
 	if err != nil {
 		return nil, err
 	}
-	c, err := dtls.Client(pConn, d.dtlsConfig)
-	return &dns.Conn{Conn: &dtlsConn{Conn: c}}, err
+	c, err := dtls.Client(pConn, d.raddr, d.dtlsConfig)
+	if err != nil {
+		pConn.Close()
+		return nil, err
+	}
+	return &dns.Conn{Conn: &dtlsConn{Conn: c}}, nil
 }

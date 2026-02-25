@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	rdns "github.com/folbricht/routedns"
+	rdns "github.com/zamibd/routedns"
 )
 
 // Instantiates an rdns.Resolver from a resolver config

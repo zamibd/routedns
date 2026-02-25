@@ -3,7 +3,7 @@ package rdns_test
 import (
 	"fmt"
 
-	rdns "github.com/folbricht/routedns"
+	rdns "github.com/zamibd/routedns"
 	"github.com/miekg/dns"
 )
 

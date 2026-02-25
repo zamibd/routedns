@@ -27,7 +27,7 @@ nfpms:
   - package_name: routedns
     file_name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
     vendor: Frank Olbricht
-    homepage: https://github.com/folbricht/routedns
+    homepage: https://github.com/zamibd/routedns
     maintainer: Frank Olbricht <frank.olbricht@gmail.com>
     description: RouteDNS acts as a stub resolver and proxy that offers flexible configuration options
     license: BSD-3-Clause license
@@ -41,7 +41,7 @@ checksum:
 
 release:
   github:
-    owner: folbricht
+    owner: zamibd
     name: routedns
 
   # If set to true, will not auto-publish the release.

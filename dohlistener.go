@@ -15,6 +15,7 @@ import (
 	"log/slog"
 
 	"github.com/miekg/dns"
+	proxyproto "github.com/pires/go-proxyproto"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 )
@@ -127,6 +128,13 @@ func (s *DoHListener) startTCP() error {
 		return err
 	}
 	defer ln.Close()
+
+	// Wrap with PROXY protocol if enabled
+	if s.opt.ProxyProtocol {
+		ln = &proxyproto.Listener{Listener: ln}
+		Log.Info("PROXY protocol enabled", "id", s.id, "addr", s.addr)
+	}
+
 	if s.opt.NoTLS {
 		return s.httpServer.Serve(ln)
 	}

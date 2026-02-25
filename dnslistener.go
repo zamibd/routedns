@@ -3,14 +3,17 @@ package rdns
 import (
 	"crypto/tls"
 	"net"
+	"strings"
 
 	"github.com/miekg/dns"
+	proxyproto "github.com/pires/go-proxyproto"
 )
 
 // DNSListener is a standard DNS listener for UDP or TCP.
 type DNSListener struct {
 	*dns.Server
-	id string
+	id            string
+	proxyProtocol bool
 }
 
 var _ Listener = &DNSListener{}
@@ -18,16 +21,20 @@ var _ Listener = &DNSListener{}
 type ListenOptions struct {
 	// Network allowed to query this listener.
 	AllowedNet []*net.IPNet
+
+	// Enable PROXY protocol support (v1/v2) for TCP listeners.
+	ProxyProtocol bool
 }
 
 // NewDNSListener returns an instance of either a UDP or TCP DNS listener.
-func NewDNSListener(id, addr, net string, opt ListenOptions, resolver Resolver) *DNSListener {
+func NewDNSListener(id, addr, network string, opt ListenOptions, resolver Resolver) *DNSListener {
 	return &DNSListener{
-		id: id,
+		id:            id,
+		proxyProtocol: opt.ProxyProtocol,
 		Server: &dns.Server{
 			Addr:    addr,
-			Net:     net,
-			Handler: listenHandler(id, net, addr, resolver, opt.AllowedNet),
+			Net:     network,
+			Handler: listenHandler(id, network, addr, resolver, opt.AllowedNet),
 		},
 	}
 }
@@ -35,6 +42,18 @@ func NewDNSListener(id, addr, net string, opt ListenOptions, resolver Resolver) 
 // Start the DNS listener.
 func (s DNSListener) Start() error {
 	Log.Info("starting listener", "id", s.id, "protocol", s.Net, "addr", s.Addr)
+
+	// For TCP with PROXY protocol, wrap the listener
+	if s.proxyProtocol && strings.HasPrefix(s.Net, "tcp") {
+		ln, err := net.Listen(s.Net, s.Addr)
+		if err != nil {
+			return err
+		}
+		s.Server.Listener = &proxyproto.Listener{Listener: ln}
+		Log.Info("PROXY protocol enabled", "id", s.id, "addr", s.Addr)
+		return s.Server.ActivateAndServe()
+	}
+
 	return s.ListenAndServe()
 }
 
