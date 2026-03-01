@@ -22,7 +22,7 @@ COPY --from=builder /build/cmd/routedns/routedns /routedns
 
 # Expose standard DNS ports: UDP 53, TCP 53, and DoT TCP 853 
 # (Update these if your config uses different ports)
-EXPOSE 53/tcp 53/udp 5301/tcp
+EXPOSE 5301/tcp
 
 ENTRYPOINT ["/routedns"]
 

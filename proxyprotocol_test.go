@@ -314,3 +314,82 @@ func TestDoTListenerProxyProtocolIPv6(t *testing.T) {
 	require.Equal(t, "2001:db8::1", seenSourceIP.String(),
 		"Expected PROXY protocol IPv6 source IP 2001:db8::1, got %s", seenSourceIP)
 }
+
+// TestDNSListenerTCPProxyProtocolPort5301 tests PROXY protocol on a plain DNS TCP listener specifically on port 5301.
+// It verifies both v1 and v2 proxy headers and performs an actual upstream query.
+func TestDNSListenerTCPProxyProtocolPort5301(t *testing.T) {
+	var seenSourceIP net.IP
+
+	// Create a custom resolver that acts as the upstream, capturing the source IP
+	// and then forwarding the valid query to Google DNS to get a real response.
+	upstream := &TestResolver{
+		ResolveFunc: func(q *dns.Msg, ci ClientInfo) (*dns.Msg, error) {
+			seenSourceIP = ci.SourceIP
+
+			// Forward the query to a real DNS resolver (Google DNS over TCP)
+			client := new(dns.Client)
+			client.Net = "tcp"
+			resp, _, err := client.Exchange(q, "8.8.8.8:53")
+			return resp, err
+		},
+	}
+
+	addr := "127.0.0.1:5301"
+
+	opt := ListenOptions{ProxyProtocol: true}
+	s := NewDNSListener("test-tcp-proxy-5301", addr, "tcp", opt, upstream)
+	go func() {
+		err := s.Start()
+		if err != nil {
+			t.Logf("listener error: %v", err)
+		}
+	}()
+	defer s.Shutdown()
+	time.Sleep(time.Second)
+
+	tests := []struct {
+		name     string
+		version  byte
+		sourceIP string
+		domain   string
+	}{
+		{"Proxy v1", 1, "10.0.0.51", "example.com."},
+		{"Proxy v2", 2, "10.0.0.52", "cloudflare.com."},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			seenSourceIP = nil // Reset
+
+			rawConn, err := net.Dial("tcp", addr)
+			require.NoError(t, err)
+			defer rawConn.Close()
+
+			header := &proxyproto.Header{
+				Version:           tt.version,
+				Command:           proxyproto.PROXY,
+				TransportProtocol: proxyproto.TCPv4,
+				SourceAddr:        &net.TCPAddr{IP: net.ParseIP(tt.sourceIP), Port: 11111},
+				DestinationAddr:   &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 5301},
+			}
+			_, err = header.WriteTo(rawConn)
+			require.NoError(t, err)
+
+			dnsConn := &dns.Conn{Conn: rawConn}
+			q := new(dns.Msg)
+			q.SetQuestion(tt.domain, dns.TypeA)
+			err = dnsConn.WriteMsg(q)
+			require.NoError(t, err)
+
+			resp, err := dnsConn.ReadMsg()
+			require.NoError(t, err)
+
+			// Ensure we got a successful real response from the upstream Google DNS
+			require.Equal(t, dns.RcodeSuccess, resp.Rcode)
+			require.Greater(t, len(resp.Answer), 0, "Expected answers from upstream")
+
+			require.Equal(t, tt.sourceIP, seenSourceIP.String(),
+				"Expected PROXY protocol source IP %s, got %s", tt.sourceIP, seenSourceIP)
+		})
+	}
+}
